@@ -633,12 +633,12 @@ export const api = {
   },
   search(q: string, type: SearchType = "all"): Promise<SearchResponse> {
     const params = new URLSearchParams({ q, type });
-    return clientCatalog.search(q, type, () => request<SearchResponse>(`/v1/search?${params}`));
+    return clientCatalog.search(q, type, () => request<SearchResponse>(`/v1/catalog/search?${params}`));
   },
 
   getTrack(id: string): Promise<ApiTrackDetails> {
     return clientCatalog.getTrack(id, () =>
-      request<ApiTrackDetails>(`/v1/tracks/${encodeURIComponent(id)}`),
+      request<ApiTrackDetails>(`/v1/catalog/tracks/${encodeURIComponent(id)}`),
     );
   },
 
@@ -691,7 +691,7 @@ export const api = {
 
   getAlbum(id: string): Promise<ApiAlbumDetails> {
     return clientCatalog.getAlbum(id, () =>
-      request<ApiAlbumDetails>(`/v1/albums/${encodeURIComponent(id)}`),
+      request<ApiAlbumDetails>(`/v1/catalog/albums/${encodeURIComponent(id)}`),
     );
   },
 
@@ -701,13 +701,13 @@ export const api = {
 
   getArtist(id: string): Promise<ApiArtistDetails> {
     return clientCatalog.getArtist(id, () =>
-      request<ApiArtistDetails>(`/v1/artists/${encodeURIComponent(id)}`),
+      request<ApiArtistDetails>(`/v1/catalog/artists/${encodeURIComponent(id)}`),
     );
   },
 
   getPlaylist(id: string): Promise<ApiCatalogPlaylistDetails> {
     return clientCatalog.getPlaylist(id, () =>
-      request<ApiCatalogPlaylistDetails>(`/v1/playlists/${encodeURIComponent(id)}`),
+      request<ApiCatalogPlaylistDetails>(`/v1/catalog/playlists/${encodeURIComponent(id)}`),
     );
   },
 
