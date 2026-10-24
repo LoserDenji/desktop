@@ -760,7 +760,8 @@
     },
     "cover_glow": {
       "title": "Cover-Leuchten",
-      "description": "Unscharfes Cover-Leuchten hinter Seiten. Ausschalten für einen schlichten Hintergrund."
+      "description": "Unscharfes Cover-Leuchten hinter Seiten. Ausschalten für einen schlichten Hintergrund.",
+      "disabled_for_wallpaper": "Aus, solange ein eigenes Hintergrundbild gesetzt ist."
     }
   },
   "toast": {

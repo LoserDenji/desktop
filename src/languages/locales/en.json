@@ -895,7 +895,8 @@
     },
     "cover_glow": {
       "title": "Cover glow",
-      "description": "Blurred artwork glow behind pages. Turn off to keep a plain background."
+      "description": "Blurred artwork glow behind pages. Turn off to keep a plain background.",
+      "disabled_for_wallpaper": "Off while a custom wallpaper is set."
     }
   },
   "toast": {

@@ -869,7 +869,8 @@
     },
     "cover_glow": {
       "title": "Brillo de portada",
-      "description": "Brillo difuminado de la portada tras las páginas. Desactívalo para un fondo liso."
+      "description": "Brillo difuminado de la portada tras las páginas. Desactívalo para un fondo liso.",
+      "disabled_for_wallpaper": "Desactivado mientras haya un fondo de pantalla personalizado."
     }
   },
   "toast": {

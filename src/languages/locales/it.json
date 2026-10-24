@@ -815,7 +815,8 @@
     },
     "cover_glow": {
       "title": "Bagliore copertina",
-      "description": "Bagliore sfocato della copertina dietro le pagine. Disattiva per uno sfondo semplice."
+      "description": "Bagliore sfocato della copertina dietro le pagine. Disattiva per uno sfondo semplice.",
+      "disabled_for_wallpaper": "Disattivato finché è impostato uno sfondo personalizzato."
     }
   },
   "toast": {

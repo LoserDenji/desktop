@@ -8,6 +8,7 @@ import { ThemeCard } from "./ThemeCard";
 import {
   useCustomizationStore,
   selectIsGlassThemeActive,
+  useHasCustomBackground,
 } from "../../store/customizationStore";
 
 export function AppearanceTab({ searchQuery }: { searchQuery?: string }) {
@@ -16,6 +17,7 @@ export function AppearanceTab({ searchQuery }: { searchQuery?: string }) {
   const { theme, setTheme } = useTheme();
   const isGlassActive = useCustomizationStore(selectIsGlassThemeActive);
   const coverGlow = useCustomizationStore((s) => s.coverGlow);
+  const wallpaperActive = useHasCustomBackground();
   const setCoverGlow = useCustomizationStore((s) => s.setCoverGlow);
 
   useEffect(() => {
@@ -104,16 +106,20 @@ export function AppearanceTab({ searchQuery }: { searchQuery?: string }) {
       <SettingRow
         title={t("settings.cover_glow.title") || "Cover glow"}
         description={
-          t("settings.cover_glow.description") ||
-          "Blurred artwork glow behind pages. Turn off to keep a plain background."
+          wallpaperActive
+            ? t("settings.cover_glow.disabled_for_wallpaper") ||
+              "Off while a custom wallpaper is set."
+            : t("settings.cover_glow.description") ||
+              "Blurred artwork glow behind pages. Turn off to keep a plain background."
         }
         titleKey="settings.cover_glow.title"
-        descKey="settings.cover_glow.description"
+        descKey={wallpaperActive ? undefined : "settings.cover_glow.description"}
         searchQuery={searchQuery}
         control={
           <ToggleSwitch
-            checked={coverGlow}
+            checked={coverGlow && !wallpaperActive}
             onChange={setCoverGlow}
+            disabled={wallpaperActive}
             ariaLabel={t("settings.cover_glow.title") || "Cover glow"}
           />
         }

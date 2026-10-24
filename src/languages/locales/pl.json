@@ -819,7 +819,8 @@
     },
     "cover_glow": {
       "title": "Poświata okładki",
-      "description": "Rozmyta poświata okładki za stronami. Wyłącz, aby zostawić jednolite tło."
+      "description": "Rozmyta poświata okładki za stronami. Wyłącz, aby zostawić jednolite tło.",
+      "disabled_for_wallpaper": "Wyłączone, gdy ustawiona jest własna tapeta."
     }
   },
   "toast": {

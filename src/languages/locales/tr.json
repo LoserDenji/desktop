@@ -815,7 +815,8 @@
     },
     "cover_glow": {
       "title": "Kapak parıltısı",
-      "description": "Sayfaların arkasında bulanık kapak parıltısı. Düz arka plan için kapatın."
+      "description": "Sayfaların arkasında bulanık kapak parıltısı. Düz arka plan için kapatın.",
+      "disabled_for_wallpaper": "Özel duvar kâğıdı ayarlıyken kapalı."
     }
   },
   "toast": {

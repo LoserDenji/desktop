@@ -878,7 +878,8 @@
     },
     "cover_glow": {
       "title": "Brilho da capa",
-      "description": "Brilho desfocado da capa atrás das páginas. Desative para um fundo simples."
+      "description": "Brilho desfocado da capa atrás das páginas. Desative para um fundo simples.",
+      "disabled_for_wallpaper": "Desativado enquanto houver um papel de parede personalizado."
     }
   },
   "toast": {
