@@ -39,7 +39,10 @@ import { SpeedPitchPicker } from "./SpeedPitchPicker";
 import { TimelineSlider } from "./TimelineSlider";
 import { useTheme } from "next-themes";
 import { useCoverReady, CoverImage } from "@/features/covers";
-import { usePageBackdropStore } from "@/shared/lib";
+import {
+  useBlockCustomizationStyle,
+  useHasPageBackdrop,
+} from "@/features/settings/store/customizationStore";
 import { ArtistLink } from "@/features/artist";
 
 function rgbToHsl(r: number, g: number, b: number): [number, number, number] {
@@ -210,6 +213,7 @@ function MiniPlayer({
   const player = usePlayerState();
   const { t } = useTranslation();
   const { resolvedTheme } = useTheme();
+  const miniplayerCustomStyle = useBlockCustomizationStyle("miniplayer");
   const isLight = resolvedTheme
     ? resolvedTheme === "light"
     : typeof document !== "undefined" &&
@@ -217,7 +221,7 @@ function MiniPlayer({
   const miniPlayerStyle = usePlayerStore((state) => state.miniPlayerStyle);
   const usesRoundedStyle = !embedded && miniPlayerStyle === "rounded";
   const usesBackgroundProgress = true;
-  const hasPageBackdrop = usePageBackdropStore((s) => Boolean(s.coverUrl));
+  const hasPageBackdrop = useHasPageBackdrop();
   const [accentColor, setAccentColor] = useState(
     isLight ? "rgba(0, 0, 0, 0.06)" : "rgba(255, 255, 255, 0.12)",
   );
@@ -646,6 +650,7 @@ function MiniPlayer({
                 }`
               : "rounded-3xl border-[0.5px] border-border-tertiary bg-bg-primary"
         }`}
+        style={miniplayerCustomStyle}
         onPointerDown={(e) => {
           if (e.button !== 0) return;
           const target = e.target as Element | null;

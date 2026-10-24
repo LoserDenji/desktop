@@ -40,6 +40,10 @@ import {
   HERO_GLASS_CLASS,
 } from "@/shared/ui";
 import { usePageBackdrop } from "@/shared/lib";
+import {
+  useClassicSurfaces,
+  useHasCustomBackground,
+} from "@/features/settings/store/customizationStore";
 import type { Track } from "@/shared/types";
 import { useTranslation } from "@/languages";
 import { useModalStore } from "@/features/library";
@@ -63,6 +67,8 @@ function CollectionContent() {
   const { t } = useTranslation();
 
   const { data, loading } = useCollection(type, id);
+  const classicSurfaces = useClassicSurfaces();
+  const hasCustomBg = useHasCustomBackground();
   usePageBackdrop(data?.coverUrl);
   const isSingleArtistAlbum = useMemo(() => {
     if (type === "playlist" || !data || data.tracks.length === 0) return false;
@@ -277,10 +283,10 @@ function CollectionContent() {
             <div
               ref={scrollRef}
               data-no-window-drag
-              className="relative z-10 h-full w-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain box-border pt-(--page-inset-top) pb-(--page-inset-bottom)"
+              className="relative z-10 flex flex-col h-full w-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain box-border pt-(--page-inset-top) pb-(--page-inset-bottom)"
               style={{ willChange: "scroll-position" }}
             >
-              <div className="pl-[16px] pr-[12px] pt-[8px]" data-no-window-drag>
+              <div className="shrink-0 pl-[16px] pr-[12px] pt-[8px]" data-no-window-drag>
                 <EntityHero
                   cover={
                     data.coverUrl ? (
@@ -502,7 +508,15 @@ function CollectionContent() {
                 />
               </div>
 
-              <div className="mt-[20px] mx-[4px] mb-[78px] rounded-[14px] bg-black/[0.03] dark:bg-white/[0.04] backdrop-blur-xl overflow-hidden p-[8px]">
+              <div
+                className={`grow shrink-0 mt-[20px] mx-[4px] rounded-t-[14px] bg-black/[0.03] dark:bg-white/[0.04] overflow-hidden px-[8px] pt-[8px] ${
+                  classicSurfaces || hasCustomBg ? "" : "backdrop-blur-xl"
+                }`}
+                style={{
+                  marginBottom: "calc(var(--page-inset-bottom) * -1)",
+                  paddingBottom: "calc(var(--page-inset-bottom) + 16px)",
+                }}
+              >
                 <section>
                   {search.matches && search.matches.length === 0 ? (
                     <TrackSearchEmpty

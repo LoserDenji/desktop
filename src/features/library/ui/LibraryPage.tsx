@@ -15,7 +15,7 @@ import {
   useLikedTrackCount,
   useYoutubeLibraryItems,
 } from "../hooks";
-import likesCover from "@/assets/likes-cover.svg";
+import { useLikesCover } from "../hooks/useLikesCover";
 import { useTranslation } from "@/languages";
 import { useModalStore } from "../store/modalStore";
 import { useImportStore } from "../store/importStore";
@@ -66,6 +66,7 @@ function LikesPlaylistCard({
   viewMode?: LibraryViewMode;
 }) {
   const { t } = useTranslation();
+  const likesCover = useLikesCover();
 
   if (viewMode === "list") {
     return (
@@ -145,6 +146,7 @@ function LikesPlaylistCard({
 export default function LibraryPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const likesCover = useLikesCover();
   usePageBackdrop(likesCover, { blur: 56, dim: 0.22 });
   const [activeTab, setActiveTab] = useState<LibraryTab>("all");
   const [stateByTab, setStateByTab] = useState<LibraryState>(initialState);
@@ -379,11 +381,11 @@ export default function LibraryPage() {
           const next = event.currentTarget.scrollTop > 2;
           setShowTopFog((prev) => (prev === next ? prev : next));
         }}
-        className="h-full w-full overflow-y-auto bg-transparent pt-(--page-inset-top) pb-(--page-inset-bottom)"
+        className="h-full w-full overflow-y-auto bg-transparent pb-(--page-inset-bottom)"
       >
         <div className="relative z-20 bg-transparent">
 
-          <div className="px-[12px] pt-[8px] pb-[10px]">
+          <div className="px-[12px] pt-[36px] pb-[10px]">
             <h1
               className="text-[26px] font-bold text-text-primary tracking-tight m-0 leading-tight"
               style={{ fontFamily: "var(--font-inter), sans-serif" }}

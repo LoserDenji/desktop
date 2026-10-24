@@ -24,7 +24,11 @@ import {
   HERO_GLASS_CLASS,
 } from "@/shared/ui";
 import { usePageBackdrop } from "@/shared/lib";
-import likesCover from "@/assets/likes-cover.svg";
+import {
+  useClassicSurfaces,
+  useHasCustomBackground,
+} from "@/features/settings/store/customizationStore";
+import { useLikesCover } from "../hooks/useLikesCover";
 import { useAuthStore } from "@/features/auth";
 import { userDisplayName } from "@/entities/user";
 import {
@@ -180,6 +184,9 @@ function LibraryPlaylistContent() {
       revision: playlistDetail.revision,
     };
   })();
+  const likesCover = useLikesCover();
+  const classicSurfaces = useClassicSurfaces();
+  const hasCustomBg = useHasCustomBackground();
   usePageBackdrop(
     isLikesMode ? likesCover : (viewData?.coverUrls?.[0] ?? viewData?.coverUrl),
   );
@@ -453,10 +460,10 @@ function LibraryPlaylistContent() {
             <div
               ref={scrollRef}
               data-no-window-drag
-              className="relative z-10 h-full w-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain box-border pt-(--page-inset-top) pb-(--page-inset-bottom)"
+              className="relative z-10 flex flex-col h-full w-full min-h-0 overflow-y-auto overflow-x-hidden overscroll-contain box-border pt-(--page-inset-top) pb-(--page-inset-bottom)"
               style={{ willChange: "scroll-position" }}
             >
-              <div className="pl-[16px] pr-[12px] pt-[8px]" data-no-window-drag>
+              <div className="shrink-0 pl-[16px] pr-[12px] pt-[8px]" data-no-window-drag>
                 <EntityHero
                   cover={(() => {
                     const urls =
@@ -772,7 +779,15 @@ function LibraryPlaylistContent() {
                 />
               </div>
 
-              <div className="mt-[20px] mx-[4px] mb-[78px] rounded-[14px] bg-black/[0.03] dark:bg-white/[0.04] backdrop-blur-xl overflow-hidden p-[8px]">
+              <div
+                className={`grow shrink-0 mt-[20px] mx-[4px] rounded-t-[14px] bg-black/[0.03] dark:bg-white/[0.04] overflow-hidden px-[8px] pt-[8px] ${
+                  classicSurfaces || hasCustomBg ? "" : "backdrop-blur-xl"
+                }`}
+                style={{
+                  marginBottom: "calc(var(--page-inset-bottom) * -1)",
+                  paddingBottom: "calc(var(--page-inset-bottom) + 16px)",
+                }}
+              >
                 {currentTracks.length === 0 ? (
                   <div className="flex min-h-[50vh] flex-col items-center justify-center gap-[12px] text-center">
                     <PlaylistFill size={40} className="text-border-alpha-33" />

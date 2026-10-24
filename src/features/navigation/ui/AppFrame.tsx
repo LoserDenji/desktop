@@ -20,7 +20,7 @@ import {
 } from "@mingcute/react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
-import { cn, usePageBackdropStore } from "@/shared/lib";
+import { cn } from "@/shared/lib";
 import WindowControls from "./WindowControls";
 import PageTransition from "./PageTransition";
 import RightDrawer from "./RightDrawer";
@@ -56,7 +56,13 @@ import {
   CreatePlaylistModal,
   useModalStore,
 } from "@/features/library";
-import { SettingsModal } from "@/features/settings";
+import {
+  SettingsModal,
+  useCustomizationStore,
+  useHasCustomBackground,
+  useHasPageBackdrop,
+  useClassicSurfaces,
+} from "@/features/settings";
 import { UpdateModal, UpdateToastBridge } from "@/features/updater";
 import { YoutubeSignInNotice } from "@/features/youtube-auth";
 
@@ -665,12 +671,19 @@ export default function AppFrame({ children }: AppFrameProps) {
       (document.documentElement.getAttribute("data-theme") === "dark" ||
         (!document.documentElement.getAttribute("data-theme") &&
           window.matchMedia?.("(prefers-color-scheme: dark)")?.matches));
-  const hasPageBackdrop = usePageBackdropStore((s) => Boolean(s.coverUrl));
+  const backgroundImage = useCustomizationStore((s) => s.backgroundImage);
+  const backgroundBlur = useCustomizationStore((s) => s.backgroundBlur);
+  const backgroundDim = useCustomizationStore((s) => s.backgroundDim);
+  const hasCustomBg = useHasCustomBackground();
+  const hasPageBackdrop = useHasPageBackdrop();
+  const classicSurfaces = useClassicSurfaces();
 
   return (
     <div
       ref={appFrameRef}
-      className={`relative flex flex-col h-full w-full overflow-hidden bg-bg-canvas p-1.5 gap-1.5 ${
+      className={`relative flex flex-col h-full w-full overflow-hidden p-1.5 gap-1.5 ${
+        hasCustomBg ? "bg-black" : "bg-bg-canvas"
+      } ${
         isEdgeToEdge ? "rounded-none" : "rounded-[12px]"
       }`}
       onScroll={(e) => {
@@ -678,7 +691,32 @@ export default function AppFrame({ children }: AppFrameProps) {
         if (e.currentTarget.scrollTop !== 0) e.currentTarget.scrollTop = 0;
       }}
     >
-      <DynamicBlurBackground isDark={isDark} />
+      {hasCustomBg && backgroundImage ? (
+        <div
+          className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
+          aria-hidden="true"
+        >
+          <img
+            src={backgroundImage}
+            alt=""
+            className="absolute max-w-none object-cover select-none"
+            style={{
+              inset: -backgroundBlur * 2,
+              width: `calc(100% + ${backgroundBlur * 4}px)`,
+              height: `calc(100% + ${backgroundBlur * 4}px)`,
+              filter: backgroundBlur > 0 ? `blur(${backgroundBlur}px)` : undefined,
+            }}
+          />
+          {backgroundDim > 0 && (
+            <div
+              className="absolute inset-0 bg-black"
+              style={{ opacity: backgroundDim / 100 }}
+            />
+          )}
+        </div>
+      ) : classicSurfaces ? null : (
+        <DynamicBlurBackground isDark={isDark} />
+      )}
 
       <AnimatePresence>
         {!isFullscreenPlayer && (
@@ -713,6 +751,7 @@ export default function AppFrame({ children }: AppFrameProps) {
           <main
             className={cn(
               "flex-1 min-w-0 flex flex-col relative h-full overflow-hidden [--page-inset-top:56px]",
+              "rounded-xl",
               shouldShowMiniPlayer && hasPageBackdrop
                 ? "[--page-inset-bottom:64px] [--floating-inset-bottom:70px]"
                 : "[--page-inset-bottom:0px] [--floating-inset-bottom:0px]",

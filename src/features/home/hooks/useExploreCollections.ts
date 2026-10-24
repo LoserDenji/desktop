@@ -37,9 +37,15 @@ function useCachedItems(key: string, load: () => Promise<PopularItem[]>) {
   return { items, isLoading };
 }
 
+const MIN_TOP_ALBUM_TRACKS = 5;
+const TOP_ALBUMS_LIMIT = 20;
+
 async function loadPopularAlbums(): Promise<PopularItem[]> {
-  const response = await api.getPopularAlbums("7d", 20);
-  return response.items.map((album) => ({
+  const response = await api.getPopularAlbums("7d", TOP_ALBUMS_LIMIT * 2);
+  const fullAlbums = response.items
+    .filter((album) => album.trackCount >= MIN_TOP_ALBUM_TRACKS)
+    .slice(0, TOP_ALBUMS_LIMIT);
+  return fullAlbums.map((album) => ({
     type: "album",
     item: {
       id: album.id,

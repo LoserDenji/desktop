@@ -14,6 +14,7 @@ import { AppRoutes } from "./routes";
 import DeeplinkHandler from "./DeeplinkHandler";
 import EnvironmentWarning from "./EnvironmentWarning";
 import { ConnectivityWall } from "@/features/connectivity";
+import { useThemeCustomizationSync } from "@/features/settings";
 import "./globals.css";
 
 function AppIconSync() {
@@ -27,6 +28,7 @@ function PresenceSync() {
 }
 
 function ThemeSync() {
+  useThemeCustomizationSync();
   return null;
 }
 

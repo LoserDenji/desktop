@@ -17,6 +17,7 @@ import {
   QuestionCircle,
   Database,
   Widget5,
+  Gallery,
 } from "@solar-icons/react";
 import Dialog from "@/shared/ui/Dialog";
 import { UserAvatar } from "@/shared/ui";
@@ -29,6 +30,7 @@ import {
   PlaybackTab,
   ShortcutsTab,
   AppearanceTab,
+  CustomizationTab,
   StorageTab,
   AboutTab,
   OverlayTab,
@@ -43,6 +45,7 @@ type TabId =
   | "Discord"
   | "Youtube"
   | "Appearance"
+  | "Customization"
   | "Storage"
   | "About";
 
@@ -56,6 +59,7 @@ const TAB_ICONS: Record<TabId, React.ComponentType<any>> = {
   Discord: DiscordFill,
   Youtube: YoutubeFill,
   Appearance: Palette,
+  Customization: Gallery,
   Storage: Database,
   About: InfoCircle,
 };
@@ -64,7 +68,7 @@ type TabGroupKey = "player" | "interface" | "integrations" | "application";
 
 const TAB_GROUPS: { labelKey: TabGroupKey; ids: TabId[] }[] = [
   { labelKey: "player", ids: ["Playback", "Shortcuts"] },
-  { labelKey: "interface", ids: ["Appearance", "Overlay"] },
+  { labelKey: "interface", ids: ["Appearance", "Customization", "Overlay"] },
   { labelKey: "integrations", ids: ["Youtube", "Discord"] },
   { labelKey: "application", ids: ["Storage", "About"] },
 ];
@@ -224,6 +228,26 @@ const SETTING_ITEMS: { tabId: TabId; titleKey: string; descKey?: string }[] = [
     titleKey: "settings.theme.title",
     descKey: "settings.theme.description",
   },
+  {
+    tabId: "Appearance",
+    titleKey: "settings.cover_glow.title",
+    descKey: "settings.cover_glow.description",
+  },
+  {
+    tabId: "Customization",
+    titleKey: "settings.customization.wallpaper_title",
+    descKey: "settings.customization.wallpaper_description",
+  },
+  {
+    tabId: "Customization",
+    titleKey: "settings.customization.blocks_title",
+    descKey: "settings.customization.blocks_description",
+  },
+  {
+    tabId: "Customization",
+    titleKey: "settings.customization.reset_all",
+    descKey: "settings.customization.reset_all_desc",
+  },
 
   // Storage
   {
@@ -276,6 +300,7 @@ export default function SettingsModal() {
     Discord: t("settings.tabs.discord") || "Discord RPC",
     Youtube: t("settings.tabs.youtube") || "YouTube",
     Appearance: t("settings.tabs.appearance"),
+    Customization: t("settings.tabs.customization") || "Customization",
     Storage: t("settings.tabs.storage"),
     About: t("settings.tabs.about"),
   };
@@ -295,6 +320,9 @@ export default function SettingsModal() {
       t("settings.youtube.description") ||
       "Sign in to your YouTube account to prevent playback errors.",
     Appearance: t("settings.theme.description"),
+    Customization:
+      t("settings.customization.description") ||
+      "Window background wallpaper, transparency and block blur effects.",
     Storage: t("settings.storage.description"),
     About: t("settings.about.tagline"),
   };
@@ -311,6 +339,7 @@ export default function SettingsModal() {
       Discord: "settings.tabs.discord",
       Youtube: "settings.tabs.youtube",
       Appearance: "settings.theme.title",
+      Customization: "settings.tabs.customization",
       Storage: "settings.tabs.storage",
       About: "settings.tabs.about",
     };
@@ -322,6 +351,7 @@ export default function SettingsModal() {
       Discord: "settings.discord.description",
       Youtube: "settings.youtube.description",
       Appearance: "settings.theme.description",
+      Customization: "settings.customization.description",
       Storage: "settings.storage.description",
       About: "settings.about.tagline",
     };
@@ -628,6 +658,9 @@ export default function SettingsModal() {
               )}
               {activeTab === "Appearance" && (
                 <AppearanceTab searchQuery={searchQuery} />
+              )}
+              {activeTab === "Customization" && (
+                <CustomizationTab searchQuery={searchQuery} />
               )}
               {activeTab === "Storage" && (
                 <StorageTab searchQuery={searchQuery} />
