@@ -62,6 +62,8 @@ export interface LinerElectronApi {
   onWindowStateChange: (cb: (state: WindowState) => void) => () => void;
   onWindowRestored?: (cb: () => void) => () => void;
   onWindowMinimized?: (cb: () => void) => () => void;
+  onTrayHidden?: (cb: () => void) => () => void;
+  onTrayShown?: (cb: () => void) => () => void;
   dragStart: () => void;
   dragMove: (deltaX: number, deltaY: number) => void;
   dragEnd: () => void;
@@ -158,6 +160,7 @@ export interface LinerElectronApi {
   ) => () => void;
   onBundleReady: (cb: (state: any) => void) => () => void;
   onBundleStamp: (cb: (line: string) => void) => () => void;
+  trayUpdateState: (state: any) => void;
   touchbarUpdateState: (state: any) => void;
   onTouchBarAction: (cb: (action: any) => void) => () => void;
   sendTouchBarAction: (action: any) => void;
@@ -177,6 +180,11 @@ export interface LinerElectronApi {
   onOverlaySettingsChanged: (cb: (settings: any) => void) => () => void;
   onOverlayVisibility: (cb: (visible: boolean) => void) => () => void;
   setOverlayAuthenticated?: (authenticated: boolean) => void;
+  setMinimizeToTray: (enabled: boolean) => void;
+  minimizeToTray: () => Promise<void>;
+  minimizeToTaskbar: () => Promise<void>;
+  isMinimizeToTray: () => Promise<boolean>;
+  onTrayAction: (cb: (action: string) => void) => () => void;
   discordUpdateState: (state: any) => void;
   discordUpdateSettings: (settings: any) => void;
   getDiscordStatus: () => Promise<DiscordStatus>;
@@ -222,6 +230,20 @@ const api: LinerElectronApi = {
     ipcRenderer.on("window:minimized", listener);
     return () => {
       ipcRenderer.removeListener("window:minimized", listener);
+    };
+  },
+  onTrayHidden: (cb) => {
+    const listener = () => cb();
+    ipcRenderer.on("window:tray-hidden", listener);
+    return () => {
+      ipcRenderer.removeListener("window:tray-hidden", listener);
+    };
+  },
+  onTrayShown: (cb) => {
+    const listener = () => cb();
+    ipcRenderer.on("window:tray-shown", listener);
+    return () => {
+      ipcRenderer.removeListener("window:tray-shown", listener);
     };
   },
   dragStart: () => {
@@ -344,6 +366,9 @@ const api: LinerElectronApi = {
       ipcRenderer.removeListener("deeplink:open", listener);
     };
   },
+  trayUpdateState: (state) => {
+    ipcRenderer.send("tray:update-state", state);
+  },
   touchbarUpdateState: (state) => {
     ipcRenderer.send("touchbar:update-state", state);
   },
@@ -417,6 +442,19 @@ const api: LinerElectronApi = {
   },
   setOverlayAuthenticated: (authenticated) => {
     ipcRenderer.send("overlay:set-authenticated", authenticated);
+  },
+  setMinimizeToTray: (enabled) => {
+    ipcRenderer.send("tray:set-minimize-to-tray", enabled);
+  },
+  minimizeToTray: () => ipcRenderer.invoke("window:minimize-to-tray"),
+  minimizeToTaskbar: () => ipcRenderer.invoke("window:minimize-to-taskbar"),
+  isMinimizeToTray: () => ipcRenderer.invoke("tray:is-minimize-to-tray"),
+  onTrayAction: (cb) => {
+    const listener = (_event: unknown, action: string) => cb(action);
+    ipcRenderer.on("tray:action", listener);
+    return () => {
+      ipcRenderer.removeListener("tray:action", listener);
+    };
   },
   discordUpdateState: (state) => {
     ipcRenderer.send("discord:update-state", state);

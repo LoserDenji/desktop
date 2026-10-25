@@ -112,6 +112,7 @@ export class OverlayManager {
   private primed = false;
   private priming = false;
   private wantVisible = false;
+  private showOnMinimizeTimer: NodeJS.Timeout | null = null;
   private indexPathResolver: (() => string) | null = null;
   private loadedIndexPath: string | null = null;
 
@@ -531,6 +532,26 @@ export class OverlayManager {
     return !this.disposed && this.isAuthenticated && this.enabled && this.autoShowOnMinimize;
   }
 
+  /**
+   * Explicitly trigger the auto-show path the minimize event handler used to
+   * run inline. Idempotent: safe to call when nothing should happen.
+   */
+  public showOnMinimize() {
+    if (!this.willShowOnMinimize()) return;
+    this.wasAutoOpened = true;
+    // Clear any pending close so the overlay doesn't flicker closed then reopen
+    if (this.closeTimeout) {
+      clearTimeout(this.closeTimeout);
+      this.closeTimeout = null;
+    }
+    if (this.showOnMinimizeTimer) clearTimeout(this.showOnMinimizeTimer);
+    this.showOnMinimizeTimer = setTimeout(() => {
+      this.showOnMinimizeTimer = null;
+      if (!this.isAuthenticated) return;
+      this.showOverlay();
+    }, 50);
+  }
+
   public async openForTransition(beforeShow: (win: BrowserWindow) => void): Promise<BrowserWindow | null> {
     if (this.disposed || !this.isAuthenticated || !this.enabled) return null;
     if (this.closeTimeout) {
@@ -741,12 +762,13 @@ export class OverlayManager {
   }
 
   private clearLifecycleTimers() {
-    for (const timer of [this.warmTimer, this.readyFallbackTimer, this.revealFallbackTimer]) {
+    for (const timer of [this.warmTimer, this.readyFallbackTimer, this.revealFallbackTimer, this.showOnMinimizeTimer]) {
       if (timer) clearTimeout(timer);
     }
     this.warmTimer = null;
     this.readyFallbackTimer = null;
     this.revealFallbackTimer = null;
+    this.showOnMinimizeTimer = null;
   }
 
   private handleRendererGone(win: BrowserWindow, reason: string) {
@@ -798,6 +820,10 @@ export class OverlayManager {
     if (this.closeTimeout) {
       clearTimeout(this.closeTimeout);
       this.closeTimeout = null;
+    }
+    if (this.showOnMinimizeTimer) {
+      clearTimeout(this.showOnMinimizeTimer);
+      this.showOnMinimizeTimer = null;
     }
 
     if (this.overlayWindow && !this.overlayWindow.isDestroyed()) {
