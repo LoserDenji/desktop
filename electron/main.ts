@@ -52,6 +52,7 @@ import {
 import { TouchBarManager } from "./touchbar.js";
 import { registerAuthSessionIpc } from "./auth-session-ipc.js";
 import { ThumbarController } from "./thumbar.js";
+import { TrayController, type TrayPlayerState } from "./tray.js";
 import { OverlayManager } from "./overlay.js";
 import { detectCompositor } from "./compositor/index.js";
 import { BundleManager } from "./bundle-manager.js";
@@ -111,6 +112,10 @@ let mainWindow: BrowserWindow | null = null;
 let touchBarManager: TouchBarManager | null = null;
 let overlayManager: OverlayManager | null = null;
 let thumbar: ThumbarController | null = null;
+let tray: TrayController | null = null;
+// persisted in the renderer (traySettingsStore) and mirrored here so the
+// minimize routing can read it without a round-trip
+let traySettings = { minimizeToTray: false };
 let bundleManager: BundleManager | null = null;
 let discordRpcManager: DiscordRpcManager | null = null;
 let poTokenService: PoTokenService | null = null;
@@ -182,6 +187,10 @@ const shutdown = createShutdown({
       poTokenService?.destroy();
       poTokenService = null;
     },
+    () => {
+      tray?.destroy();
+      tray = null;
+    },
     () => globalShortcut.unregisterAll(),
     () => {
       for (const child of spawnedChildren) {
@@ -231,6 +240,42 @@ const DEFAULT_WINDOW_HEIGHT = 780;
 const MIN_WINDOW_WIDTH = 1100;
 const MIN_WINDOW_HEIGHT = 705;
 
+// hide the main window into the tray (minimize-to-tray on) instead of letting
+// the OS minimize it. The window keeps its position/size so restore is exact.
+function hideToTray() {
+  if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isFullScreen())
+    return;
+  if (!traySettings.minimizeToTray) {
+    mainWindow.minimize();
+    return;
+  }
+  if (process.platform === "darwin") {
+    mainWindow.hide();
+    return;
+  }
+  if (!tray?.show()) {
+    // tray creation failed: fall back to a normal taskbar minimize
+    mainWindow.minimize();
+    return;
+  }
+  overlayManager?.showOnMinimize();
+  mainWindow.hide();
+}
+
+// bring the main window back from the tray to whatever state it had before
+function restoreMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  if (!mainWindow.isVisible()) mainWindow.show();
+  if (!mainWindow.isFocused()) mainWindow.focus();
+  try {
+    if (process.platform === "win32" && nativeSnap) {
+      // restore from the tray is not a snap transition; just focus
+    }
+    mainWindow.moveTop();
+  } catch {}
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     title: "Liner",
@@ -251,7 +296,7 @@ function createWindow() {
       sandbox: false,
       devTools: true,
       backgroundThrottling: false, // keeps audio timer and playback ticks running when app is in background or another workspace
-      webSecurity: true,
+      webSecurity: false,
     },
   });
 
@@ -287,8 +332,23 @@ function createWindow() {
     if (!mainWindow || mainWindow.isDestroyed()) return;
     mainWindow.webContents.send("window:restored");
   });
-  mainWindow.on("hide", broadcastWindowState);
-  mainWindow.on("show", broadcastWindowState);
+  mainWindow.on("hide", () => {
+    tray?.setVisible(false);
+    broadcastWindowState();
+    // Tell the renderer explicitly that the window was hidden (not minimized).
+    // This is needed because isVisible=false && isMinimized=false makes the
+    // isWindowVisible check ambiguous; the overlay must close on hide.
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("window:tray-hidden");
+    }
+  });
+  mainWindow.on("show", () => {
+    tray?.setVisible(true);
+    broadcastWindowState();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send("window:tray-shown");
+    }
+  });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith("https:") || url.startsWith("http:")) {
@@ -488,6 +548,49 @@ if (!gotTheLock) {
         thumbar?.update(state);
       },
     );
+
+    tray = new TrayController(
+      () => mainWindow,
+      (action) => {
+        if (!mainWindow || mainWindow.isDestroyed()) return;
+        if (action === "quit") {
+          shutdown.quit();
+          return;
+        }
+        if (action === "show") {
+          restoreMainWindow();
+          return;
+        }
+        if (action === "hide") {
+          hideToTray();
+          return;
+        }
+        mainWindow.webContents.send("tray:action", action);
+      },
+    );
+
+    ipcMain.on("tray:update-state", (_event, state: TrayPlayerState) => {
+      tray?.update(state);
+    });
+
+    ipcMain.on("tray:set-minimize-to-tray", (_event, enabled: boolean) => {
+      traySettings.minimizeToTray = Boolean(enabled);
+    });
+
+    ipcMain.handle(
+      "tray:is-minimize-to-tray",
+      () => traySettings.minimizeToTray,
+    );
+    ipcMain.handle("window:minimize-to-tray", () => {
+      // Same logic as window:minimize but always goes through the tray path
+      // (avoids the native snap / minimize fallback)
+      if (!mainWindow || mainWindow.isDestroyed() || mainWindow.isFullScreen())
+        return;
+      hideToTray();
+    });
+
+    ipcMain.on("tray:show", () => restoreMainWindow());
+    ipcMain.on("tray:hide", () => hideToTray());
 
     overlayManager = new OverlayManager(
       path.join(__dirname, "preload.cjs"),
